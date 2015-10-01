@@ -1354,31 +1354,39 @@ SixTeenNotes = (function() {
 
 SixTeenViewModel = (function() {
   function SixTeenViewModel() {
-    this.onTouch = bind(this.onTouch, this);
+    this.onTouchScene = bind(this.onTouchScene, this);
+    this.onTouchNote = bind(this.onTouchNote, this);
     this.init = bind(this.init, this);
   }
 
   SixTeenViewModel.prototype.init = function(score) {
-    var audio, update;
+    var update;
+    this.isPlaying = false;
     this.score = new SixTeenNotes(score);
     this.judge = m.prop("");
-    audio = new Audio(score.audio);
-    audio.play();
-    this.time = m.prop(audio.currentTime);
+    this.audio = new Audio(score.audio);
+    this.time = m.prop(this.audio.currentTime);
     return (update = (function(_this) {
       return function() {
-        _this.time(audio.currentTime);
+        _this.time(_this.audio.currentTime);
         m.redraw();
         return window.requestAnimationFrame(update);
       };
     })(this))();
   };
 
-  SixTeenViewModel.prototype.onTouch = function(note, event) {
+  SixTeenViewModel.prototype.onTouchNote = function(note, event) {
     var judge, ref, ref1;
     note.clearTime = this.time();
     judge = (note.time - 0.1 < (ref = note.clearTime) && ref < note.time + 0.1) ? "great" : (note.time - 0.2 < (ref1 = note.clearTime) && ref1 < note.time + 0.2) ? "good" : "bad";
     return this.judge(judge);
+  };
+
+  SixTeenViewModel.prototype.onTouchScene = function(note, event) {
+    if (!this.isPlaying) {
+      this.isPlaying = true;
+      return this.audio.play();
+    }
   };
 
   return SixTeenViewModel;
@@ -1400,7 +1408,7 @@ SixTeen = (function() {
   }
 
   SixTeen.prototype._view = function(ctrl) {
-    var addTouchEvent, getNoteClass;
+    var addTouchNoteEvent, addTouchSceneEvent, getNoteClass;
     getNoteClass = (function(_this) {
       return function(note) {
         if (note.clearTime != null) {
@@ -1421,18 +1429,25 @@ SixTeen = (function() {
         }
       };
     })(this);
-    addTouchEvent = function(note, element, initialized, context) {
+    addTouchNoteEvent = function(note, element, initialized, context) {
       if (!initialized) {
-        return element.addEventListener('touchstart', this._vm.onTouch.bind(this, note), false);
+        return element.addEventListener('touchstart', this._vm.onTouchNote.bind(this, note), false);
       }
     };
-    return m("div#game", [
+    addTouchSceneEvent = function(element, initialized, context) {
+      if (!initialized) {
+        return element.addEventListener('touchstart', this._vm.onTouchScene, false);
+      }
+    };
+    return m("div#game", {
+      config: addTouchSceneEvent.bind(this)
+    }, [
       m("span#judge", this._vm.judge()), m("div#notes", this._vm.score().notes.map((function(_this) {
         return function(note) {
           return m("img.note.row-" + note.row + ".column-" + note.column, {
             src: "./image/dest.png",
             "class": getNoteClass(note),
-            config: addTouchEvent.bind(_this, note)
+            config: addTouchNoteEvent.bind(_this, note)
           });
         };
       })(this)))
