@@ -1354,7 +1354,7 @@ SixTeenNotes = (function() {
 
 SixTeenViewModel = (function() {
   function SixTeenViewModel() {
-    this.onTouchScene = bind(this.onTouchScene, this);
+    this.startGame = bind(this.startGame, this);
     this.onTouchNote = bind(this.onTouchNote, this);
     this.init = bind(this.init, this);
   }
@@ -1382,7 +1382,7 @@ SixTeenViewModel = (function() {
     return this.judge(judge);
   };
 
-  SixTeenViewModel.prototype.onTouchScene = function(note, event) {
+  SixTeenViewModel.prototype.startGame = function() {
     if (!this.isPlaying) {
       this.isPlaying = true;
       return this.audio.play();
@@ -1408,7 +1408,7 @@ SixTeen = (function() {
   }
 
   SixTeen.prototype._view = function(ctrl) {
-    var addTouchNoteEvent, addTouchSceneEvent, getNoteClass;
+    var addTouchNoteEvent, getNoteClass;
     getNoteClass = (function(_this) {
       return function(note) {
         if (note.clearTime != null) {
@@ -1434,15 +1434,10 @@ SixTeen = (function() {
         return element.addEventListener('touchstart', this._vm.onTouchNote.bind(this, note), false);
       }
     };
-    addTouchSceneEvent = function(element, initialized, context) {
-      if (!initialized) {
-        return element.addEventListener('touchstart', this._vm.onTouchScene, false);
-      }
-    };
-    return m("div#game", {
-      config: addTouchSceneEvent.bind(this)
-    }, [
-      m("span#judge", this._vm.judge()), m("div#notes", this._vm.score().notes.map((function(_this) {
+    return m("div#game", [
+      m("button", {
+        onclick: this._vm.startGame
+      }, "start game"), m("span#judge", this._vm.judge()), m("div#notes", this._vm.score().notes.map((function(_this) {
         return function(note) {
           return m("img.note.row-" + note.row + ".column-" + note.column, {
             src: "./image/dest.png",
