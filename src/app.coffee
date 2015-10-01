@@ -25,7 +25,7 @@ class SixTeenViewModel
      else "bad"
      @judge judge
 
-   onTouchScene : (note, event) =>
+   startGame : =>
      unless @isPlaying
        @isPlaying = true
        @audio.play()
@@ -51,11 +51,8 @@ class SixTeen
       unless initialized
         element.addEventListener 'touchstart', @_vm.onTouchNote.bind(this, note), false
 
-    addTouchSceneEvent = (element, initialized, context) ->
-      unless initialized
-        element.addEventListener 'touchstart', @_vm.onTouchScene, false
-
-    m "div#game", {config : addTouchSceneEvent.bind this}, [
+    m "div#game", [
+      m "button", {onclick: @_vm.startGame}, "start game"
       m "span#judge", @_vm.judge()
       m "div#notes", @_vm.score().notes.map (note) =>
         m "img.note.row-#{note.row}.column-#{note.column}", {
